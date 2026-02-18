@@ -1,0 +1,11 @@
+llm:
+  openai:
+    provider: "openai"
+    model_name: "gpt-4o" # Fallback/Default
+    fast_model: "gpt-4o-mini"
+    smart_model: "gpt-4o"
+
+#mcp:
+  #verification_server:
+    #script_path: "mcp_servers/verification_mcp/src/server.py"
+    #python_path: "mcp_servers/verification_mcp/.venv/Scripts/python.exe"

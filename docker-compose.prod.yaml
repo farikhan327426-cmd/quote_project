@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # 1. The Agent Application (FastAPI + MCP)
+  agent-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quote-agent-app
+    restart: always
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    # SECURITY: We do NOT hardcode secrets here.
+    # We tell Docker to read them from the server's environment or a .env file.
+    environment:
+      - POSTGRES_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - AGENT_API_KEY=${AGENT_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # MCP Auth
+      - QUOTE_API_USERNAME=${QUOTE_API_USERNAME}
+      - QUOTE_API_PASSWORD=${QUOTE_API_PASSWORD}
+      - GET_PRICE_API=${GET_PRICE_API}
+      - SIGNIN_API=${SIGNIN_API}
+    depends_on:
+      - db
+    networks:
+      - agent_network
+
+  # 2. Production Database
+  db:
+    image: postgres:16
+    container_name: quote-agent-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      # PERSISTENCE: Maps the data to the Windows Server host folder
+      # You can change './pg-data' to an absolute path like 'D:/Data/PgData'
+      - ./pg-data:/var/lib/postgresql/data
+    networks:
+      - agent_network
+
+networks:
+  agent_network:
+    driver: bridge

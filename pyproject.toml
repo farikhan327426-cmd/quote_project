@@ -1,0 +1,23 @@
+[project]
+name = "quote-and-order-angent"
+version = "0.1.0"
+description = "Monorepo Root"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28.1",
+    "langchain-core>=1.2.7",
+    "langchain-openai>=1.1.7",
+    "langgraph>=1.0.6",
+    "pydantic>=2.12.5",
+    "python-box>=7.3.2",
+    "python-dotenv>=1.2.1",
+    "pyyaml>=6.0.3",
+]
+
+[tool.uv.workspace]
+members = [
+    "apps/agent_app",
+    "shared_core",
+    "mcp_servers/quote_mcp",
+]

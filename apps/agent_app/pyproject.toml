@@ -1,0 +1,36 @@
+[project]
+name = "agent-app"
+version = "0.1.0"
+description = "Agent application"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.128.0",
+    "langchain>=1.2.1",
+    "langchain-core>=1.2.6",
+    "langchain-mcp-adapters>=0.2.1",
+    "langchain-openai>=1.1.6",
+    "langgraph>=1.0.5",
+    "langgraph-checkpoint-postgres>=3.0.2",
+    "psycopg-pool>=3.3.0",
+    "psycopg[binary,pool]>=3.3.2",
+    "pydantic[email]>=2.12.5",
+    "python-box>=7.3.2",
+    "python-dotenv>=1.2.1",
+    "pyyaml>=6.0.3",
+    "uvicorn>=0.40.0",
+    "shared-core",
+    "mcp>=1.25.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# Tell Hatch where the Agent code lives
+[tool.hatch.build.targets.wheel]
+packages = ["src/agenticAI_full_workflow"]
+
+# Tell uv to use the local workspace version
+[tool.uv.sources]
+shared-core = { workspace = true }
