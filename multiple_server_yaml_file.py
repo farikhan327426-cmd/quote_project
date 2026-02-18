@@ -1,0 +1,92 @@
+""""
+name: Local Machine Multi-Server Deploy
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  # 1. Build Job: Docker Hub par image push karega
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Login to Docker Hub (Cloud)
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          # Image ka naam: username/repository-name:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:latest
+
+  # 2. Deploy to Testing
+  deploy-test:
+    needs: build
+    runs-on: [self-hosted, testing-server]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Deploy with Docker Compose (Test)
+        shell: powershell
+        # CRITICAL: Map GitHub Secrets to Shell Environment Variables
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          AGENT_API_KEY: ${{ secrets.AGENT_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          QUOTE_API_USERNAME: ${{ secrets.QUOTE_API_USERNAME }}
+          QUOTE_API_PASSWORD: ${{ secrets.QUOTE_API_PASSWORD }}
+          GET_PRICE_API: ${{ secrets.GET_PRICE_API }}
+          SIGNIN_API: ${{ secrets.SIGNIN_API }}
+          APP_PORT: "9090" # Port for Testing
+        run: |
+          docker compose -f docker-compose.prod.yaml pull
+          docker compose -f docker-compose.prod.yaml up -d --remove-orphans --force-recreate
+          docker image prune -f
+
+  # 3. Deploy to Production
+  deploy-prod:
+    needs: deploy-test
+    environment: production
+    runs-on: [self-hosted, prod-server]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Deploy with Docker Compose (Prod)
+        shell: powershell
+        # CRITICAL: Map GitHub Secrets to Shell Environment Variables
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          AGENT_API_KEY: ${{ secrets.AGENT_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          QUOTE_API_USERNAME: ${{ secrets.QUOTE_API_USERNAME }}
+          QUOTE_API_PASSWORD: ${{ secrets.QUOTE_API_PASSWORD }}
+          GET_PRICE_API: ${{ secrets.GET_PRICE_API }}
+          SIGNIN_API: ${{ secrets.SIGNIN_API }}
+          APP_PORT: "8080" # Port for Production
+        run: |
+          docker compose -f docker-compose.prod.yaml pull
+          docker compose -f docker-compose.prod.yaml up -d --remove-orphans --force-recreate
+          docker image prune -f
+
+
+
+
+"""
