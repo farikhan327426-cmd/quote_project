@@ -2,7 +2,7 @@ name: Windows Server Single-Stage Deploy
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   # Stage 1: Build the image and push to Docker Hub
