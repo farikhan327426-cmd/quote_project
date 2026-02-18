@@ -73,4 +73,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
 
 # 9. Start Command
 # We use the absolute path to the module because we are in the root /app
-CMD ["uvicorn", "apps.agent_app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+CMD ["uvicorn", "apps.agent_app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

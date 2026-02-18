@@ -47,7 +47,7 @@ jobs:
           QUOTE_API_USERNAME: ${{ secrets.QUOTE_API_USERNAME }}
           QUOTE_API_PASSWORD: ${{ secrets.QUOTE_API_PASSWORD }}
           GET_PRICE_API: ${{ secrets.GET_PRICE_API }}
-          SIGNIN_API: ${{ secrets.SIGNIN_API }}
+          QUOTE_API_URL: ${{ secrets.QUOTE_API_URL }}
           APP_PORT: "9090" 
         run: |
           # 1. Pull the latest image from Docker Hub

@@ -20,11 +20,14 @@ services:
       - QUOTE_API_USERNAME=${QUOTE_API_USERNAME}
       - QUOTE_API_PASSWORD=${QUOTE_API_PASSWORD}
       - GET_PRICE_API=${GET_PRICE_API}
-      - SIGNIN_API=${SIGNIN_API}
+      - QUOTE_API_URL=${QUOTE_API_URL}
     depends_on:
       - db
     networks:
       - agent_network
+    volumes:
+      # Is se aapke application logs server ke 'logs' folder mein save honge
+      - ./logs:/app/logs
 
   # 2. Production Database
   db:
@@ -45,3 +48,4 @@ services:
 networks:
   agent_network:
     driver: bridge
+    
