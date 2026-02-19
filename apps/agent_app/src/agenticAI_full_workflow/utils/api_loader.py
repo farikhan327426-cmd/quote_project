@@ -6,16 +6,31 @@ from typing import Any, Dict, List, Optional
 from pathlib import Path
 from dotenv import load_dotenv
 
-# 1. Robust .env Loading (Searches parents until it finds .env)
+# 1. Improved .env Loading (Docker & Local Friendly)
 def setup_env():
+    # Pehle check karein ke kya hum Docker mein hain ya Environment Variables set hain
+    # Agar OPENAI_API_KEY pehle se environment mein hai, toh .env ki zaroorat nahi
+    if os.getenv("OPENAI_API_KEY"):
+        print("[INFO]: Environment variables already loaded from System/Docker.")
+        return
+
     current_dir = Path(__file__).resolve().parent
+    env_found = False
+    
+    # Parents mein .env dhoondhein (sirf local development ke liye)
     for parent in [current_dir, *current_dir.parents]:
         env_file = parent / ".env"
         if env_file.exists():
             load_dotenv(dotenv_path=env_file, override=True)
-            return
-    raise FileNotFoundError("Could not find .env file in project structure.")
+            print(f"[INFO]: Loaded environment from {env_file}")
+            env_found = True
+            break
+    
+    # Agar na system variables milein aur na .env file, toh sirf warning dein (crash na karein)
+    if not env_found and not os.getenv("OPENAI_API_KEY"):
+        print("[WARNING]: No .env file found and no environment variables detected.")
 
+# Initialize environment
 setup_env()
 
 class MetroApiSchemaParser:
