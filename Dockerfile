@@ -47,5 +47,5 @@ ENV PYTHONUNBUFFERED=1 \
 USER agentuser
 EXPOSE 8000
 
-# Ab 'uvicorn' direct command ki tarah chalega
+# Ab 'uvicorn' direct command ki tarah chalega dakhty hain phr
 CMD ["uvicorn", "apps.agent_app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
