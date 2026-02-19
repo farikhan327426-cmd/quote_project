@@ -29,7 +29,7 @@ RUN useradd -m -u 1000 agentuser
 WORKDIR /app
 
 # 1. FIX: Create logs folder and set permissions BEFORE switching to agentuser
-RUN mkdir -p /app/logs && chown -u 1000:1000 /app/logs
+RUN mkdir -p /app/logs && chown 1000:1000 /app/logs
 
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
