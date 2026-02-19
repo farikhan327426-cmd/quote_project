@@ -1,35 +1,30 @@
 version: '3.8'
 
 services:
-  # 1. The Agent Application (FastAPI + MCP)
   agent-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: farikhan/quote_project:latest  # GitHub Action yahan push karega
     container_name: quote-agent-app
     restart: always
     ports:
       - "${APP_PORT:-8000}:8000"
-    # SECURITY: We do NOT hardcode secrets here.
-    # We tell Docker to read them from the server's environment or a .env file.
     environment:
+      # Yahan 'db' use ho raha hai kyunke service ka naam 'db' hai
       - POSTGRES_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - AGENT_API_KEY=${AGENT_API_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      # MCP Auth
       - QUOTE_API_USERNAME=${QUOTE_API_USERNAME}
       - QUOTE_API_PASSWORD=${QUOTE_API_PASSWORD}
       - GET_PRICE_API=${GET_PRICE_API}
       - QUOTE_API_URL=${QUOTE_API_URL}
+      - LOG_LEVEL=INFO
     depends_on:
-      - db
+      db:
+        condition: service_healthy # Wait karega jab tak DB ready na ho
     networks:
       - agent_network
     volumes:
-      # Is se aapke application logs server ke 'logs' folder mein save honge
       - ./logs:/app/logs
 
-  # 2. Production Database
   db:
     image: postgres:16
     container_name: quote-agent-db
@@ -38,9 +33,12 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+    healthcheck: # Taake app foran connect na kare jab tak DB initialize na ho
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
-      # PERSISTENCE: Maps the data to the Windows Server host folder
-      # You can change './pg-data' to an absolute path like 'D:/Data/PgData'
       - ./pg-data:/var/lib/postgresql/data
     networks:
       - agent_network
@@ -48,4 +46,3 @@ services:
 networks:
   agent_network:
     driver: bridge
-    

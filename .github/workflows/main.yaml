@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
-  # Stage 1: Build the image and push to Docker Hub
+  # Stage 1: Build the image and push to Docker Hub with Tags
   build:
     runs-on: ubuntu-latest
     steps:
@@ -23,8 +23,10 @@ jobs:
         with:
           context: .
           push: true
-          # Uses the repo name as the image name automatically
-          tags: ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:latest
+          # Do tags banenge: 'latest' aur 'v25' (jo bhi build number ho)
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:latest
+            ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:v${{ github.run_number }}
 
   # Stage 2: Deploy to your Windows Server
   deploy:
@@ -48,13 +50,18 @@ jobs:
           QUOTE_API_PASSWORD: ${{ secrets.QUOTE_API_PASSWORD }}
           GET_PRICE_API: ${{ secrets.GET_PRICE_API }}
           QUOTE_API_URL: ${{ secrets.QUOTE_API_URL }}
-          APP_PORT: "9090" 
+          APP_PORT: "9090"
+          # Ye variable docker-compose.prod.yaml mein image version set karega
+          IMAGE_TAG: "v${{ github.run_number }}"
         run: |
-          # 1. Pull the latest image from Docker Hub
+          # 1. Logs folder create karna aur permission set karna (Windows Host par)
+          if (!(Test-Path "logs")) { New-Item -ItemType Directory -Path "logs" }
+          
+          # 2. Docker Hub se naya version pull karein
           docker compose -f docker-compose.prod.yaml pull
           
-          # 2. Restart containers with new image and config
+          # 3. Restart containers (Ismein IMAGE_TAG v${{ github.run_number }} use hoga)
           docker compose -f docker-compose.prod.yaml up -d --remove-orphans --force-recreate
           
-          # 3. Clean up old unused images to save space
+          # 4. Purani images delete karein taake server full na ho
           docker image prune -f
