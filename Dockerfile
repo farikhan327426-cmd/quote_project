@@ -3,7 +3,7 @@
 # ==========================================
 FROM python:3.12-slim-bookworm AS builder
 
-# 1. Install uv (The fastest Python package manager)
+# 1. Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
 WORKDIR /app
@@ -12,28 +12,20 @@ WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1 
 ENV UV_LINK_MODE=copy
 
-# 3. CACHE OPTIMIZATION STEP:
-# We copy ONLY the configuration files first. 
-# This allows Docker to cache the "dependency download" layer.
-# If you change your code but not your dependencies, this step is skipped (Instant Build).
-
-# Copy Root Configs
+# 3. Copy Configs (Caching optimization)
 COPY pyproject.toml uv.lock ./
-
-# Copy Child Configs (CRITICAL FOR MONOREPO)
-# We must replicate the folder structure for uv to find the workspace members
 COPY apps/agent_app/pyproject.toml ./apps/agent_app/
 COPY shared_core/pyproject.toml ./shared_core/
 COPY mcp_servers/quote_mcp/pyproject.toml ./mcp_servers/quote_mcp/
 
-# 4. Install Dependencies (No Project Code yet)
-# --no-install-project: Installs pandas, langchain, etc., but NOT your own code.
-RUN uv sync --frozen --no-install-project --no-dev
+# 4. Install Dependencies
+# Professional Change: Humen poora project install karna hoga taake paths set ho jayein
+RUN uv sync --frozen --no-dev --no-install-project
 
-# 5. Copy the Actual Source Code
+# 5. Copy Source Code
 COPY . .
 
-# 6. Install The Project (Now we install 'agent_app' and 'shared_core')
+# 6. Final Sync
 RUN uv sync --frozen --no-dev
 
 # ==========================================
@@ -48,29 +40,26 @@ RUN useradd -m -u 1000 agentuser
 WORKDIR /app
 
 # 3. Environment Variables
-# PATH: critical to ensure we use the venv python, not system python
+# PATH: Isme virtual environment ka bin folder sabse pehle rakha hai
 ENV PYTHONUNBUFFERED=1 \
-  PYTHONDONTWRITEBYTECODE=1 \
-  PATH="/app/.venv/bin:$PATH"
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/app/.venv/bin:$PATH" \
+    PYTHONPATH="/app"
 
-# 4. Copy the Virtual Environment from Builder
-# This is the only heavy thing we copy. It includes all installed libraries.
+# 4. Copy Virtual Environment and Code
 COPY --from=builder --chown=agentuser:agentuser /app/.venv /app/.venv
+COPY --from=builder --chown=agentuser:agentuser /app /app
 
-# 5. Copy Application Code
-COPY --from=builder --chown=agentuser:agentuser /app .
-
-# 6. Switch to Secure User
+# 5. Switch to Secure User
 USER agentuser
 
-# 7. Expose Port
+# 6. Expose Port
 EXPOSE 8000
 
-# 8. Healthcheck (Enterprise Standard)
-# Fails if the server doesn't respond within 30s
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8000/health || exit 1
+# 7. Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -m curl -f http://localhost:8000/health || exit 1
 
-# 9. Start Command
-# We use the absolute path to the module because we are in the root /app
-CMD ["uvicorn", "apps.agent_app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+# 8. Professional Start Command
+# Change: "python -m uvicorn" use kiya hai jo 100% path dhoond leta hai
+CMD ["python", "-m", "uvicorn", "apps.agent_app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
