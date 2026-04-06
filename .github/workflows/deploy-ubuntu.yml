@@ -2,6 +2,7 @@ name: Ubuntu Server Direct Deploy
 
 on:
   push:
+  #main branch par push karne par deploy hoga
     branches: [ main ]
 
 jobs:
