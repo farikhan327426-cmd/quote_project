@@ -10,6 +10,12 @@ jobs:
     name: Build & Deploy on Ubuntu Runner
     runs-on: self-hosted
     steps:
+      - name: Force Cleanup workspace
+        run: |
+          # Use sudo to remove any root-owned leftovers that block the checkout
+          sudo rm -rf "${{ github.workspace }}/pg-data" || true
+          sudo rm -rf "${{ github.workspace }}/logs" || true
+
       - name: Checkout Code
         uses: actions/checkout@v3
 
