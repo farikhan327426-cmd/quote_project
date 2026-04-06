@@ -2,16 +2,30 @@ name: Ubuntu Server Direct Deploy
 
 on:
   push:
-  #main branch par push karne par deploy hoga
     branches: [ main ]
 
 jobs:
+  build:
+    name: Build & Version Image
+    runs-on: self-hosted
+    outputs:
+      image_tag: v${{ github.run_number }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4 # Upgraded to fix Node.js warning
+
+      - name: Build Local Image
+        run: |
+          # Build with both 'latest' and specific version tag
+          docker build -t farikhan/quote_project:latest -t farikhan/quote_project:v${{ github.run_number }} .
+
   deploy:
-    name: Build & Deploy on Ubuntu Runner
+    name: Deploy to Production
+    needs: build
     runs-on: self-hosted
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Create .env file
         run: |
@@ -30,21 +44,20 @@ jobs:
         run: |
           if docker compose version > /dev/null 2>&1; then
             echo "DOCKER_CMD=docker compose" >> $GITHUB_ENV
-            echo "Detected Docker Compose V2"
           elif docker-compose version > /dev/null 2>&1; then
             echo "DOCKER_CMD=docker-compose" >> $GITHUB_ENV
-            echo "Detected Docker Compose V1"
           else
             echo "Error: Neither 'docker compose' nor 'docker-compose' found on the runner."
             exit 1
           fi
 
       - name: Build and Restart Containers
+        env:
+          IMAGE_TAG: v${{ github.run_number }}
         run: |
-          # Ensure logs directory exists
           mkdir -p logs
-          # Use the detected command to manage containers
-          $DOCKER_CMD -f docker-compose.prod.yaml up -d --build --remove-orphans
+          # Use the specific versioned image tag (e.g. v45)
+          $DOCKER_CMD -f docker-compose.prod.yaml up -d --remove-orphans
 
       - name: System Cleanup
         run: |

@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   agent-app:
-    image: farikhan/quote_project:latest  # Docker tag mapping
+    image: farikhan/quote_project:${IMAGE_TAG:-latest}  # Dynamic Versioning
     build:
       context: .
       dockerfile: Dockerfile
