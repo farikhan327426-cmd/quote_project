@@ -55,7 +55,9 @@ jobs:
         env:
           IMAGE_TAG: v${{ github.run_number }}
         run: |
-          mkdir -p logs
+          # Create permanent folders on the server
+          mkdir -p /home/metroadmin/quote_data/logs
+          mkdir -p /home/metroadmin/quote_data/pg-data
           # Use the specific versioned image tag (e.g. v45)
           $DOCKER_CMD -f docker-compose.prod.yaml up -d --remove-orphans
 
