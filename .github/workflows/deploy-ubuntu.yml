@@ -7,7 +7,6 @@ on:
 jobs:
   deploy:
     name: Build & Deploy on Ubuntu Runner
-    #labels of the runner
     runs-on: self-hosted
     steps:
       - name: Checkout Code
@@ -26,12 +25,25 @@ jobs:
           echo "QUOTE_API_URL=${{ secrets.QUOTE_API_URL }}" >> .env
           echo "APP_PORT=${{ secrets.APP_PORT }}" >> .env
 
+      - name: Detect Docker Compose Version
+        run: |
+          if docker compose version > /dev/null 2>&1; then
+            echo "DOCKER_CMD=docker compose" >> $GITHUB_ENV
+            echo "Detected Docker Compose V2"
+          elif docker-compose version > /dev/null 2>&1; then
+            echo "DOCKER_CMD=docker-compose" >> $GITHUB_ENV
+            echo "Detected Docker Compose V1"
+          else
+            echo "Error: Neither 'docker compose' nor 'docker-compose' found on the runner."
+            exit 1
+          fi
+
       - name: Build and Restart Containers
         run: |
-          # Create logs directory if it doesn't exist
+          # Ensure logs directory exists
           mkdir -p logs
-          # Build and run containers
-          docker compose -f docker-compose.prod.yaml up -d --build --remove-orphans
+          # Use the detected command to manage containers
+          $DOCKER_CMD -f docker-compose.prod.yaml up -d --build --remove-orphans
 
       - name: System Cleanup
         run: |
