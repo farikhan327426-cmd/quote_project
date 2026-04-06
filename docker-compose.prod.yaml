@@ -42,10 +42,13 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - ./pg-data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - agent_network
 
 networks:
   agent_network:
     driver: bridge
+
+volumes:
+  postgres_data:
