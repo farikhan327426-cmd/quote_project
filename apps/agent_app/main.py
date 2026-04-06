@@ -47,7 +47,12 @@ async def lifespan(app: FastAPI):
         sys.exit(1)
 
     try:
-        service_state.pool = AsyncConnectionPool(conninfo=POSTGRES_URL, max_size=20, autocommit=True)
+        #service_state.pool = AsyncConnectionPool(conninfo=POSTGRES_URL, max_size=20)
+        service_state.pool = AsyncConnectionPool(
+    conninfo=POSTGRES_URL, 
+    max_size=20, 
+    kwargs={"autocommit": True}  # <--- This is the correct way to pass it now
+)
         await service_state.pool.open()
         logger.info("Database Connection Pool Created.")
 

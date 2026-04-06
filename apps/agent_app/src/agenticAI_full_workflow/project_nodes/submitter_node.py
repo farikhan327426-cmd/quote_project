@@ -190,11 +190,11 @@ async def submitter_node(state: AgentState):
             
             # Run the MCP server using 'uv'
             server_params = StdioServerParameters(
-                command="uv",
-                args=["run", "python", "server.py"],
-                cwd=server_dir,
-                env=os.environ.copy() 
-            )
+    command="python",  # Use the python already in your path
+    args=["server.py"], # Call the script directly
+    cwd=server_dir,
+    env=os.environ.copy() 
+)
             
             async with stdio_client(server_params) as (read, write):
                 async with ClientSession(read, write) as session:

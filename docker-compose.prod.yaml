@@ -2,7 +2,10 @@ version: '3.8'
 
 services:
   agent-app:
-    image: farikhan/quote_project:latest  # GitHub Action yahan push karega
+    image: farikhan/quote_project:latest  # Docker tag mapping
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: quote-agent-app
     restart: always
     ports:

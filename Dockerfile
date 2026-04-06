@@ -16,13 +16,13 @@ RUN uv pip install --system --no-cache -r pyproject.toml
 
 COPY . .
 
-RUN uv pip install --system --no-cache -e ./shared_core -e ./apps/agent_app
+RUN uv pip install --system --no-cache -e ./shared_core -e ./apps/agent_app -e ./mcp_servers/quote_mcp
 
 # ==========================================
 # STAGE 2: RUNTIME
 # ==========================================
 FROM python:3.12-slim-bookworm
-
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 # Security: Create non-root user
 RUN useradd -m -u 1000 agentuser
 
