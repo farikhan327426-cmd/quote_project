@@ -12,7 +12,9 @@ jobs:
       image_tag: v${{ github.run_number }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4 # Upgraded to fix Node.js warning
+        uses: actions/checkout@v4
+        with:
+          clean: false # Prevents trying to delete root-owned Docker folders
 
       - name: Build Local Image
         run: |
@@ -26,6 +28,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          clean: false # Prevents trying to delete root-owned folders
 
       - name: Create .env file
         run: |
