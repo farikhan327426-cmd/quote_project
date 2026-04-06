@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   agent-app:
-    image: farikhan/quote_project:${IMAGE_TAG:-latest}  # Dynamic Versioning
+    image: farikhan/quote_project:latest  # Docker tag mapping
     build:
       context: .
       dockerfile: Dockerfile
@@ -26,7 +26,7 @@ services:
     networks:
       - agent_network
     volumes:
-      - /home/metroadmin/quote_data/logs:/app/logs
+      - ./logs:/app/logs
 
   db:
     image: postgres:16
@@ -42,7 +42,7 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - /home/metroadmin/quote_data/pg-data:/var/lib/postgresql/data
+      - ./pg-data:/var/lib/postgresql/data
     networks:
       - agent_network
 
